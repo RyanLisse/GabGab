@@ -2,7 +2,8 @@ import AVFoundation
 import Foundation
 
 /// Manages audio playback using AVAudioEngine
-actor AudioPlayer {
+@MainActor
+final class AudioPlayer: AudioPlayerProtocol {
     private let engine = AVAudioEngine()
     private let playerNode = AVAudioPlayerNode()
     private let mixer: AVAudioMixerNode
@@ -16,6 +17,9 @@ actor AudioPlayer {
     
     /// Plays audio data from memory
     func playAudio(data: Data) async throws {
+        guard !data.isEmpty else {
+            throw GabGabError.invalidAudioData
+        }
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("mlx_output_\(UUID().uuidString).wav")
         
@@ -31,12 +35,12 @@ actor AudioPlayer {
             isEngineRunning = true
         }
         
-        playerNode.scheduleFile(file, at: nil, completionHandler: nil)
+        await playerNode.scheduleFile(file, at: nil)
         playerNode.play()
     }
     
     /// Stops audio playback and engine
-    func stop() {
+    func stop() async {
         playerNode.stop()
         if isEngineRunning {
             engine.stop()

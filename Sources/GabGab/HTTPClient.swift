@@ -1,13 +1,22 @@
 import Foundation
 
 /// HTTP client for MLX audio server communication
-actor MLXHTTPClient {
+actor MLXHTTPClient: HTTPClientProtocol {
     private let baseURL: URL
     private let session: URLSession
+    private let requestTimeout: TimeInterval
+    private let healthTimeout: TimeInterval
     
-    init(baseURL: URL, session: URLSession = .shared) {
+    init(
+        baseURL: URL,
+        session: URLSession = .shared,
+        requestTimeout: TimeInterval = 30,
+        healthTimeout: TimeInterval = 5
+    ) {
         self.baseURL = baseURL
         self.session = session
+        self.requestTimeout = requestTimeout
+        self.healthTimeout = healthTimeout
     }
     
     /// Creates a TTS request payload
@@ -21,6 +30,7 @@ actor MLXHTTPClient {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = requestTimeout
         
         let payload: [String: Any] = [
             "model": model,
@@ -68,6 +78,7 @@ actor MLXHTTPClient {
         let endpoint = baseURL.appendingPathComponent("/v1/audio/transcriptions")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
+        request.timeoutInterval = requestTimeout
         
         let boundary = "Boundary-\(UUID().uuidString)"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -113,6 +124,7 @@ actor MLXHTTPClient {
         let endpoint = baseURL.appendingPathComponent("/health")
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
+        request.timeoutInterval = healthTimeout
         
         do {
             let (_, response) = try await session.data(for: request)

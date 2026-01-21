@@ -51,6 +51,7 @@ extension GabGabCLI {
         @Option(name: .shortAndLong, help: "Urgency level for routing (high=cloud, normal=local)")
         var urgency: String = "normal"
 
+        @MainActor
         func run() async throws {
             print("🎵 Generating speech for: \"\(text)\"")
             print("🎤 Voice: \(voice)")
@@ -61,7 +62,7 @@ extension GabGabCLI {
             guard let serverURL = URL(string: server) else {
                 throw ValidationError(message: "Invalid server URL: \(server)")
             }
-            let manager = GabGabSessionManager(serverURL: serverURL)
+            let manager = GabGabSessionManager.create(serverURL: serverURL)
 
             do {
                 // Generate speech
@@ -102,13 +103,14 @@ extension GabGabCLI {
         @Option(name: .shortAndLong, help: "MLX server URL (default: http://127.0.0.1:8080)")
         var server: String = "http://127.0.0.1:8080"
 
+        @MainActor
         func run() async throws {
             print("🎧 Transcribing audio: \(input)")
 
             guard let serverURL = URL(string: server) else {
                 throw ValidationError(message: "Invalid server URL: \(server)")
             }
-            let manager = GabGabSessionManager(serverURL: serverURL)
+            let manager = GabGabSessionManager.create(serverURL: serverURL)
 
             do {
                 let audioURL = URL(fileURLWithPath: input)
@@ -140,6 +142,7 @@ extension GabGabCLI {
         @Option(name: .shortAndLong, help: "MLX server URL (default: http://127.0.0.1:8080)")
         var server: String = "http://127.0.0.1:8080"
 
+        @MainActor
         func run() async throws {
             print("🏥 Checking MLX voice server health...")
             print("🌐 Server: \(server)")
@@ -147,7 +150,7 @@ extension GabGabCLI {
             guard let serverURL = URL(string: server) else {
                 throw ValidationError(message: "Invalid server URL: \(server)")
             }
-            let manager = GabGabSessionManager(serverURL: serverURL)
+            let manager = GabGabSessionManager.create(serverURL: serverURL)
 
             // Check if server is responding
             let isHealthy = await manager.checkHealth()

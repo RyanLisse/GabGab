@@ -1,7 +1,7 @@
 import Foundation
 
 /// Configuration for MLX voice models and server settings
-public struct MLXConfiguration {
+public struct MLXConfiguration: Sendable {
     /// Default MLX server URL
     /// Note: Force unwrap is safe here as this is a known valid URL
     public static let defaultServerURL = URL(string: "http://127.0.0.1:8080")! // swiftlint:disable:this force_unwrapping

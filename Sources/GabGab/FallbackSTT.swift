@@ -2,7 +2,7 @@ import Foundation
 import Speech
 
 /// Fallback STT implementation using SFSpeechRecognizer
-actor FallbackSTT {
+actor FallbackSTT: STTProtocol {
     private let speechRecognizer: SFSpeechRecognizer?
     
     init() {
@@ -40,28 +40,35 @@ actor FallbackSTT {
         }
         
         return try await withCheckedThrowingContinuation { continuation in
+            var didResume = false
+
+            func resumeOnce(_ result: Result<String, Error>) {
+                guard !didResume else { return }
+                didResume = true
+                continuation.resume(with: result)
+            }
+
             recognizer.recognitionTask(with: recognitionRequest) { result, error in
                 if let error = error {
-                    continuation.resume(throwing: GabGabError.speechRecognitionFailed(
-                        error.localizedDescription
-                    ))
+                    resumeOnce(.failure(GabGabError.speechRecognitionFailed(error.localizedDescription)))
                     return
                 }
-                
-                guard let result = result, result.isFinal else {
-                    continuation.resume(throwing: GabGabError.speechRecognitionFailed(
-                        "Recognition did not produce a final result"
-                    ))
+
+                guard let result = result else {
                     return
                 }
-                
+
+                guard result.isFinal else {
+                    return
+                }
+
                 let transcribedText = result.bestTranscription.formattedString
                     .trimmingCharacters(in: .whitespacesAndNewlines)
-                
+
                 if transcribedText.isEmpty {
-                    continuation.resume(throwing: GabGabError.emptyTranscriptionResult)
+                    resumeOnce(.failure(GabGabError.emptyTranscriptionResult))
                 } else {
-                    continuation.resume(returning: transcribedText)
+                    resumeOnce(.success(transcribedText))
                 }
             }
         }

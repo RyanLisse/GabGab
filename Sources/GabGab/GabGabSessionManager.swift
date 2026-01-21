@@ -1,29 +1,67 @@
 import Foundation
 
 /// Manages interaction with the mlx-audio REST server and handles local fallbacks.
-public actor GabGabSessionManager {
-    private let httpClient: MLXHTTPClient
-    private let audioPlayer: AudioPlayer
-    private let fallbackTTS: FallbackTTS
-    private let fallbackSTT: FallbackSTT
-    private let config: MLXConfiguration
-    
-    public init(config: MLXConfiguration = MLXConfiguration()) {
+@MainActor
+public final class GabGabSessionManager {
+    private let httpClient: any HTTPClientProtocol
+    private let audioPlayer: any AudioPlayerProtocol
+    private let fallbackTTS: any TTSProtocol
+    private let fallbackSTT: any STTProtocol
+    public let config: MLXConfiguration
+
+    /// Initialize with dependencies (internal use - use factory methods for production)
+    private init(
+        config: MLXConfiguration,
+        httpClient: any HTTPClientProtocol,
+        audioPlayer: any AudioPlayerProtocol,
+        fallbackTTS: any TTSProtocol,
+        fallbackSTT: any STTProtocol
+    ) {
         self.config = config
-        self.httpClient = MLXHTTPClient(baseURL: config.serverURL)
-        self.audioPlayer = AudioPlayer()
-        self.fallbackTTS = FallbackTTS()
-        self.fallbackSTT = FallbackSTT()
+        self.httpClient = httpClient
+        self.audioPlayer = audioPlayer
+        self.fallbackTTS = fallbackTTS
+        self.fallbackSTT = fallbackSTT
     }
-    
-    /// Convenience initializer with server URL
-    public init(serverURL: URL) {
+
+    /// Factory method to create session manager with default configuration
+    public static func create(config: MLXConfiguration = MLXConfiguration()) -> GabGabSessionManager {
+        GabGabSessionManager(
+            config: config,
+            httpClient: MLXHTTPClient(baseURL: config.serverURL),
+            audioPlayer: AudioPlayer(),
+            fallbackTTS: FallbackTTS(),
+            fallbackSTT: FallbackSTT()
+        )
+    }
+
+    /// Factory method to create session manager with server URL
+    public static func create(serverURL: URL) -> GabGabSessionManager {
         let config = MLXConfiguration(serverURL: serverURL)
-        self.config = config
-        self.httpClient = MLXHTTPClient(baseURL: config.serverURL)
-        self.audioPlayer = AudioPlayer()
-        self.fallbackTTS = FallbackTTS()
-        self.fallbackSTT = FallbackSTT()
+        return GabGabSessionManager(
+            config: config,
+            httpClient: MLXHTTPClient(baseURL: config.serverURL),
+            audioPlayer: AudioPlayer(),
+            fallbackTTS: FallbackTTS(),
+            fallbackSTT: FallbackSTT()
+        )
+    }
+
+    /// Factory method for testing with injected dependencies
+    public static func createForTesting(
+        config: MLXConfiguration,
+        httpClient: any HTTPClientProtocol,
+        audioPlayer: any AudioPlayerProtocol,
+        fallbackTTS: any TTSProtocol,
+        fallbackSTT: any STTProtocol
+    ) -> GabGabSessionManager {
+        GabGabSessionManager(
+            config: config,
+            httpClient: httpClient,
+            audioPlayer: audioPlayer,
+            fallbackTTS: fallbackTTS,
+            fallbackSTT: fallbackSTT
+        )
     }
     
     /// Synthesizes text to speech and returns audio data without playing.
@@ -32,6 +70,9 @@ public actor GabGabSessionManager {
         voice: String = MLXConfiguration.defaultVoice,
         urgency: String = "normal"
     ) async throws -> Data {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw GabGabError.invalidTextInput
+        }
         GabGabLogger.info("Synthesizing audio data: \(text)")
         
         do {
@@ -53,6 +94,9 @@ public actor GabGabSessionManager {
         voice: String = MLXConfiguration.defaultVoice,
         urgency: String = "normal"
     ) async throws {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw GabGabError.invalidTextInput
+        }
         GabGabLogger.info("Synthesizing: \(text)")
         
         do {
@@ -81,6 +125,9 @@ public actor GabGabSessionManager {
     
     /// Transcribes audio data to text using the MLX server or fallback.
     public func transcribeAudioData(audioData: Data) async throws -> String {
+        guard !audioData.isEmpty else {
+            throw GabGabError.invalidAudioData
+        }
         GabGabLogger.info("Transcribing audio data (\(audioData.count) bytes)")
         
         do {
@@ -92,9 +139,7 @@ public actor GabGabSessionManager {
     }
     
     /// Stops audio playback and engine.
-    public func stop() {
-        Task {
-            await audioPlayer.stop()
-        }
+    public func stop() async {
+        await audioPlayer.stop()
     }
 }

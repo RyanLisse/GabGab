@@ -3,10 +3,12 @@ import Foundation
 /// Errors that can occur in the GabGab voice processing system
 public enum GabGabError: Error, LocalizedError {
     case invalidServerURL(String)
+    case invalidTextInput
     case serverError(Int, String?)
     case networkError(Error)
     case invalidResponseFormat
     case audioPlaybackError(Error)
+    case speechSynthesisFailed(String)
     case speechRecognitionUnavailable
     case speechRecognitionUnauthorized
     case speechRecognitionFailed(String)
@@ -17,6 +19,8 @@ public enum GabGabError: Error, LocalizedError {
         switch self {
         case .invalidServerURL(let url):
             return "Invalid server URL: \(url)"
+        case .invalidTextInput:
+            return "Text input is empty or invalid"
         case let .serverError(code, message):
             return "Server error \(code): \(message ?? "Unknown error")"
         case .networkError(let error):
@@ -25,6 +29,8 @@ public enum GabGabError: Error, LocalizedError {
             return "Invalid response format from server"
         case .audioPlaybackError(let error):
             return "Audio playback error: \(error.localizedDescription)"
+        case .speechSynthesisFailed(let reason):
+            return "Speech synthesis failed: \(reason)"
         case .speechRecognitionUnavailable:
             return "Speech recognition is not available on this system"
         case .speechRecognitionUnauthorized:
