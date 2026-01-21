@@ -1,11 +1,11 @@
 import ArgumentParser
 import Foundation
-import MLXVoice
+import GabGab
 
 @main
-struct MLXVoiceCLI: AsyncParsableCommand {
+struct GabGabCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "mlx-voice-cli",
+        commandName: "gabgab-cli",
         abstract: "MLX Voice Client CLI - Generate speech and transcribe audio using local MLX models",
         version: "1.0.0",
         subcommands: [TTS.self, STT.self, Health.self, Models.self],
@@ -13,7 +13,7 @@ struct MLXVoiceCLI: AsyncParsableCommand {
     )
 }
 
-extension MLXVoiceCLI {
+extension GabGabCLI {
     struct TTS: AsyncParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "tts",
@@ -45,7 +45,7 @@ extension MLXVoiceCLI {
             print("🚦 Urgency: \(urgency)")
 
             // Create voice session manager
-            let manager = MLXVoiceSessionManager(serverURL: URL(string: server)!)
+            let manager = GabGabSessionManager(serverURL: URL(string: server)!)
 
             do {
                 // Generate speech
@@ -73,7 +73,7 @@ extension MLXVoiceCLI {
     }
 }
 
-extension MLXVoiceCLI {
+extension GabGabCLI {
     struct STT: AsyncParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "stt",
@@ -89,7 +89,7 @@ extension MLXVoiceCLI {
         func run() async throws {
             print("🎧 Transcribing audio: \(input)")
 
-            let manager = MLXVoiceSessionManager(serverURL: URL(string: server)!)
+            let manager = GabGabSessionManager(serverURL: URL(string: server)!)
 
             do {
                 let audioURL = URL(fileURLWithPath: input)
@@ -108,7 +108,7 @@ extension MLXVoiceCLI {
     }
 }
 
-extension MLXVoiceCLI {
+extension GabGabCLI {
     struct Health: AsyncParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "health",
@@ -122,7 +122,7 @@ extension MLXVoiceCLI {
             print("🏥 Checking MLX voice server health...")
             print("🌐 Server: \(server)")
 
-            let manager = MLXVoiceSessionManager(serverURL: URL(string: server)!)
+            let manager = GabGabSessionManager(serverURL: URL(string: server)!)
 
             // Check if server is responding
             let isHealthy = await manager.checkHealth()
@@ -136,7 +136,7 @@ extension MLXVoiceCLI {
     }
 }
 
-extension MLXVoiceCLI {
+extension GabGabCLI {
     struct Models: AsyncParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "models",

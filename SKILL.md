@@ -55,5 +55,5 @@ Transcribe audio files using the `voice/transcribe_audio` tool.
 
 ## Troubleshooting
 
-If the MCP tools are not available, ensure the `mlx-voice-mcp-server` is running on the host machine.
-You can try to start it via the CLI if you have shell access: `mlx-voice-mcp-server`.
+If the MCP tools are not available, ensure the `gabgab-mcp-server` is running on the host machine.
+You can try to start it via the CLI if you have shell access: `gabgab-mcp-server`.

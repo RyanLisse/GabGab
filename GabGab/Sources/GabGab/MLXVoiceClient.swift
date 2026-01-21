@@ -2,7 +2,7 @@ import Foundation
 import AVFoundation
 
 /// Manages interaction with the mlx-audio REST server and handles local fallbacks.
-public actor MLXVoiceSessionManager {
+public actor GabGabSessionManager {
     private let serverURL: URL
     private let engine = AVAudioEngine()
     private let playerNode = AVAudioPlayerNode()
@@ -17,7 +17,7 @@ public actor MLXVoiceSessionManager {
     
     /// Synthesizes text to speech and returns audio data without playing.
     public func synthesizeAudioData(text: String, voice: String = "af_heart", urgency: String = "normal") async throws -> Data {
-        print("[MLXVoice] Synthesizing audio data: \(text)")
+        print("[GabGab] Synthesizing audio data: \(text)")
 
         let endpoint = serverURL.appendingPathComponent("/v1/audio/speech")
         var request = URLRequest(url: endpoint)
@@ -35,20 +35,20 @@ public actor MLXVoiceSessionManager {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                print("[MLXVoice] Server error, attempting local fallback...")
+                print("[GabGab] Server error, attempting local fallback...")
                 return try await fallbackSynthesizeAudioData(text: text, voice: voice, urgency: urgency)
             }
 
             return data
         } catch {
-            print("[MLXVoice] Connection failed: \(error.localizedDescription)")
+            print("[GabGab] Connection failed: \(error.localizedDescription)")
             return try await fallbackSynthesizeAudioData(text: text, voice: voice, urgency: urgency)
         }
     }
 
     /// Synthesizes text to speech using the MLX server or local fallback.
     public func synthesize(text: String, voice: String = "af_heart", urgency: String = "normal") async throws {
-        print("[MLXVoice] Synthesizing: \(text)")
+        print("[GabGab] Synthesizing: \(text)")
         
         let endpoint = serverURL.appendingPathComponent("/v1/audio/speech")
         var request = URLRequest(url: endpoint)
@@ -66,14 +66,14 @@ public actor MLXVoiceSessionManager {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                print("[MLXVoice] Server error, attempting local fallback...")
+                print("[GabGab] Server error, attempting local fallback...")
                 try await fallbackSynthesize(text: text, voice: voice, urgency: urgency)
                 return
             }
             
             try await playAudio(data: data)
         } catch {
-            print("[MLXVoice] Connection failed: \(error.localizedDescription)")
+            print("[GabGab] Connection failed: \(error.localizedDescription)")
             try await fallbackSynthesize(text: text, voice: voice, urgency: urgency)
         }
     }
@@ -124,7 +124,7 @@ public actor MLXVoiceSessionManager {
 
     /// Transcribes audio data to text using the MLX server or fallback.
     public func transcribeAudioData(audioData: Data) async throws -> String {
-        print("[MLXVoice] Transcribing audio data (\(audioData.count) bytes)")
+        print("[GabGab] Transcribing audio data (\(audioData.count) bytes)")
 
         let endpoint = serverURL.appendingPathComponent("/v1/audio/transcriptions")
         var request = URLRequest(url: endpoint)
@@ -148,7 +148,7 @@ public actor MLXVoiceSessionManager {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                print("[MLXVoice] Server transcription failed, attempting fallback...")
+                print("[GabGab] Server transcription failed, attempting fallback...")
                 return try await fallbackTranscribe(audioData: audioData)
             }
 
@@ -157,9 +157,9 @@ public actor MLXVoiceSessionManager {
                 return text.trimmingCharacters(in: .whitespacesAndNewlines)
             }
 
-            throw NSError(domain: "MLXVoiceClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
+            throw NSError(domain: "GabGabClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
         } catch {
-            print("[MLXVoice] Transcription failed: \(error.localizedDescription)")
+            print("[GabGab] Transcription failed: \(error.localizedDescription)")
             return try await fallbackTranscribe(audioData: audioData)
         }
     }
@@ -185,7 +185,7 @@ public actor MLXVoiceSessionManager {
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let output = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
               !output.isEmpty else {
-            throw NSError(domain: "MLXVoiceClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "No transcription output"])
+            throw NSError(domain: "GabGabClient", code: -1, userInfo: [NSLocalizedDescriptionKey: "No transcription output"])
         }
 
         return output

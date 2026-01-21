@@ -4,23 +4,23 @@
 import PackageDescription
 
 let package = Package(
-    name: "MLXVoice",
+    name: "GabGab",
     defaultLocalization: "en",
     platforms: [
         .macOS(.v14)
     ],
     products: [
         .library(
-            name: "MLXVoice",
-            targets: ["MLXVoice"]
+            name: "GabGab",
+            targets: ["GabGab"]
         ),
         .executable(
-            name: "mlx-voice-cli",
-            targets: ["mlx-voice-cli"]
+            name: "gabgab-cli",
+            targets: ["GabGabCLI"]
         ),
         .executable(
-            name: "mlx-voice-mcp-server",
-            targets: ["mlx-voice-mcp-server"]
+            name: "gabgab-mcp",
+            targets: ["GabGabMCP"]
         ),
     ],
     dependencies: [
@@ -28,25 +28,25 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "MLXVoice",
+            name: "GabGab",
             dependencies: []
         ),
         .executableTarget(
-            name: "mlx-voice-cli",
+            name: "GabGabCLI",
             dependencies: [
-                "MLXVoice",
+                "GabGab",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
         .executableTarget(
-            name: "mlx-voice-mcp-server",
+            name: "GabGabMCP",
             dependencies: [
-                "MLXVoice"
+                "GabGab"
             ]
         ),
         .testTarget(
-            name: "MLXVoiceTests",
-            dependencies: ["MLXVoice"]
+            name: "GabGabTests",
+            dependencies: ["GabGab"]
         ),
     ]
 )

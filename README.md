@@ -36,43 +36,43 @@ GabGab provides high-quality text-to-speech and speech-to-text capabilities enti
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd MLXVoice
+cd GabGab
 
 # Build the application
 swift build -c release
 
 # Install executables (optional)
-sudo cp .build/release/mlx-voice-cli /usr/local/bin/
-sudo cp .build/release/mlx-voice-mcp-server /usr/local/bin/
+sudo cp .build/release/gabgab-cli /usr/local/bin/
+sudo cp .build/release/gabgab-mcp-server /usr/local/bin/
 ```
 
 ### Basic Usage
 
 ```bash
 # Generate speech
-mlx-voice-cli tts "Hello, world!" --output greeting.wav
+gabgab-cli tts "Hello, world!" --output greeting.wav
 
 # Transcribe audio
-mlx-voice-cli stt recording.wav
+gabgab-cli stt recording.wav
 
 # Check server status
-mlx-voice-cli health
+gabgab-cli health
 ```
 
 ### MCP Server Usage
 
 ```bash
 # Start MCP server for AI integration
-mlx-voice-mcp-server
+gabgab-mcp-server
 ```
 
 ## Architecture
 
 ### Core Components
 
-- **MLXVoice**: Core Swift actor for voice processing
-- **mlx-voice-cli**: Command-line interface tool
-- **mlx-voice-mcp-server**: Model Context Protocol server
+- **GabGab**: Core Swift actor for voice processing
+- **gabgab-cli**: Command-line interface tool
+- **gabgab-mcp-server**: Model Context Protocol server
 - **Voice Router**: Intelligent local/cloud routing system
 
 ### Supported Models
@@ -100,7 +100,7 @@ mlx-voice-mcp-server
 
 ### With Briefly (Daily Briefing App)
 
-MLXVoice serves as the local voice engine for [Briefly](https://github.com/your-org/briefly), providing:
+GabGab serves as the local voice engine for [Briefly](https://github.com/your-org/briefly), providing:
 
 - Daily brief voice generation without API costs
 - Privacy-preserving local processing
@@ -135,13 +135,13 @@ swift test                    # Run tests
 ### Project Structure
 
 ```text
-MLXVoice/
+GabGab/
 ├── Sources/
-│   ├── MLXVoice/             # Core voice processing
-│   ├── mlx-voice-cli/        # CLI executable
-│   └── mlx-voice-mcp-server/ # MCP server executable
+│   ├── GabGab/             # Core voice processing
+│   ├── gabgab-cli/        # CLI executable
+│   └── gabgab-mcp-server/ # MCP server executable
 ├── Tests/
-│   └── MLXVoiceTests/
+│   └── GabGabTests/
 ├── Package.swift             # Swift Package configuration
 └── README.md                # This file
 ```
@@ -177,7 +177,7 @@ Models are stored in `~/models/voice-mlx/`:
 #### TTS Command
 
 ```bash
-mlx-voice-cli tts <text> [options]
+gabgab-cli tts <text> [options]
 Options:
   --voice <voice>        Voice ID (default: af_heart)
   --output <file>        Output file (default: speech.wav)
@@ -189,7 +189,7 @@ Options:
 #### STT Command
 
 ```bash
-mlx-voice-cli stt <audio-file> [options]
+gabgab-cli stt <audio-file> [options]
 Options:
   --server <url>         MLX server URL
 ```

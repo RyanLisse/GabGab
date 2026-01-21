@@ -1,10 +1,10 @@
 import Foundation
-import MLXVoice
+import GabGab
 
 /// MCP Server for MLX Voice operations
 /// Provides tools for text-to-speech and speech-to-text using local MLX models
-class MLXVoiceMCPServer {
-    private let manager = MLXVoiceSessionManager()
+class GabGabMCPServer {
+    private let manager = GabGabSessionManager()
 
     /// Tool: Generate speech from text
     func generateSpeech(text: String, voice: String = "af_heart", outputPath: String? = nil) async throws -> [String: Any] {
@@ -78,7 +78,7 @@ class MLXVoiceMCPServer {
 
 /// MCP Protocol Handler using stdio transport
 class MCPProtocolHandler {
-    private let server = MLXVoiceMCPServer()
+    private let server = GabGabMCPServer()
 
     func run() async {
         let stdin = FileHandle.standardInput
@@ -217,7 +217,7 @@ enum MCPError: Error {
 
 // MCP Server entry point
 @main
-struct MLXVoiceMCPMain {
+struct GabGabMCPMain {
     static func main() async {
         let handler = MCPProtocolHandler()
         await handler.run()
