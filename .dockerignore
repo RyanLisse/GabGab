@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+.github
+
+# Build artifacts
+.build
+.swiftpm
+*.xcodeproj
+*.xcworkspace
+DerivedData
+
+# Dependencies
+Package.resolved
+
+# Documentation
+README.md
+*.md
+docs/
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage
+*.profdata
+*.profraw
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp

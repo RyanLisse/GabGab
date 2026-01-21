@@ -2,6 +2,19 @@ import ArgumentParser
 import Foundation
 import GabGab
 
+/// Validation error for CLI commands
+struct ValidationError: Error, CustomStringConvertible {
+    let message: String
+    
+    init(message: String) {
+        self.message = message
+    }
+    
+    var description: String {
+        message
+    }
+}
+
 @main
 struct GabGabCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -45,7 +58,10 @@ extension GabGabCLI {
             print("🚦 Urgency: \(urgency)")
 
             // Create voice session manager
-            let manager = GabGabSessionManager(serverURL: URL(string: server)!)
+            guard let serverURL = URL(string: server) else {
+                throw ValidationError(message: "Invalid server URL: \(server)")
+            }
+            let manager = GabGabSessionManager(serverURL: serverURL)
 
             do {
                 // Generate speech
@@ -89,10 +105,16 @@ extension GabGabCLI {
         func run() async throws {
             print("🎧 Transcribing audio: \(input)")
 
-            let manager = GabGabSessionManager(serverURL: URL(string: server)!)
+            guard let serverURL = URL(string: server) else {
+                throw ValidationError(message: "Invalid server URL: \(server)")
+            }
+            let manager = GabGabSessionManager(serverURL: serverURL)
 
             do {
                 let audioURL = URL(fileURLWithPath: input)
+                guard FileManager.default.fileExists(atPath: input) else {
+                    throw ValidationError(message: "Audio file not found: \(input)")
+                }
                 let audioData = try Data(contentsOf: audioURL)
 
                 let transcript = try await manager.transcribeAudioData(audioData: audioData)
@@ -122,7 +144,10 @@ extension GabGabCLI {
             print("🏥 Checking MLX voice server health...")
             print("🌐 Server: \(server)")
 
-            let manager = GabGabSessionManager(serverURL: URL(string: server)!)
+            guard let serverURL = URL(string: server) else {
+                throw ValidationError(message: "Invalid server URL: \(server)")
+            }
+            let manager = GabGabSessionManager(serverURL: serverURL)
 
             // Check if server is responding
             let isHealthy = await manager.checkHealth()

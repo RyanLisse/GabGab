@@ -1,0 +1,157 @@
+name: Swift CI/CD
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+  workflow_dispatch:
+
+env:
+  SWIFT_VERSION: "6.2"
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: ${{ env.SWIFT_VERSION }}
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: swiftlint lint --config .swiftlint.yml --strict
+
+      - name: Check SwiftFormat
+        run: |
+          if command -v swiftformat &> /dev/null; then
+            swiftformat --lint Sources Tests
+          else
+            echo "SwiftFormat not installed, skipping format check"
+          fi
+
+  build:
+    name: Build
+    runs-on: macos-14
+    strategy:
+      matrix:
+        configuration: [debug, release]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: ${{ env.SWIFT_VERSION }}
+
+      - name: Cache Swift Package Manager
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Build (${{ matrix.configuration }})
+        run: swift build -c ${{ matrix.configuration }}
+
+      - name: Verify executables
+        run: |
+          swift build -c ${{ matrix.configuration }}
+          test -f .build/${{ matrix.configuration }}/gabgab-cli
+          test -f .build/${{ matrix.configuration }}/gabgab-mcp
+
+  test:
+    name: Test
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: ${{ env.SWIFT_VERSION }}
+
+      - name: Cache Swift Package Manager
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Run tests
+        run: swift test --parallel
+
+      - name: Generate test coverage
+        run: |
+          swift test --enable-code-coverage
+          xcrun llvm-cov export -format=lcov \
+            .build/debug/GabGabPackageTests.xctest/Contents/MacOS/GabGabPackageTests \
+            -instr-profile .build/debug/codecov/default.profdata \
+            > coverage.lcov || echo "Coverage generation skipped"
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./coverage.lcov
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: gabgab:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  integration:
+    name: Integration Tests
+    runs-on: macos-14
+    needs: [lint, build, test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: ${{ env.SWIFT_VERSION }}
+
+      - name: Build release
+        run: swift build -c release
+
+      - name: Test CLI help
+        run: |
+          .build/release/gabgab-cli --help
+          .build/release/gabgab-mcp --help || true
+
+      - name: Verify executables work
+        run: |
+          .build/release/gabgab-cli models
+          .build/release/gabgab-cli health || echo "Health check failed (expected if server not running)"

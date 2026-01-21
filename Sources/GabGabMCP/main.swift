@@ -100,7 +100,7 @@ class MCPProtocolHandler {
 
                 if let responseData = try? JSONSerialization.data(withJSONObject: response) {
                     stdout.write(responseData)
-                    stdout.write("\n".data(using: .utf8)!)
+                    stdout.write(Data("\n".utf8))
                 }
 
             } catch {
