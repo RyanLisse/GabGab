@@ -51,6 +51,11 @@ extension GabGabCLI {
         @Option(name: .shortAndLong, help: "Urgency level for routing (high=cloud, normal=local)")
         var urgency: String = "normal"
 
+        @Flag(name: .shortAndLong, help: "Use local MLX execution without server")
+        var local: Bool = false
+
+
+
         @MainActor
         func run() async throws {
             print("🎵 Generating speech for: \"\(text)\"")
@@ -59,10 +64,17 @@ extension GabGabCLI {
             print("🚦 Urgency: \(urgency)")
 
             // Create voice session manager
-            guard let serverURL = URL(string: server) else {
-                throw ValidationError(message: "Invalid server URL: \(server)")
+            let manager: GabGabSessionManager
+            if local {
+                manager = GabGabSessionManager.createLocal()
+                print("🖥️ Mode: Local Process")
+            } else {
+                guard let serverURL = URL(string: server) else {
+                    throw ValidationError(message: "Invalid server URL: \(server)")
+                }
+                manager = GabGabSessionManager.create(serverURL: serverURL)
+                print("🌐 Server: \(server)")
             }
-            let manager = GabGabSessionManager.create(serverURL: serverURL)
 
             do {
                 // Generate speech
@@ -103,14 +115,24 @@ extension GabGabCLI {
         @Option(name: .shortAndLong, help: "MLX server URL (default: http://127.0.0.1:8080)")
         var server: String = "http://127.0.0.1:8080"
 
+        @Flag(name: .shortAndLong, help: "Use local MLX execution without server")
+        var local: Bool = false
+
         @MainActor
         func run() async throws {
             print("🎧 Transcribing audio: \(input)")
 
-            guard let serverURL = URL(string: server) else {
-                throw ValidationError(message: "Invalid server URL: \(server)")
+            let manager: GabGabSessionManager
+            if local {
+                manager = GabGabSessionManager.createLocal()
+                print("🖥️ Mode: Local Process")
+            } else {
+                guard let serverURL = URL(string: server) else {
+                    throw ValidationError(message: "Invalid server URL: \(server)")
+                }
+                manager = GabGabSessionManager.create(serverURL: serverURL)
+                print("🌐 Server: \(server)")
             }
-            let manager = GabGabSessionManager.create(serverURL: serverURL)
 
             do {
                 let audioURL = URL(fileURLWithPath: input)

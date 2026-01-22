@@ -32,13 +32,18 @@ public struct MLXConfiguration: Sendable {
     /// Default voice identifier
     public let defaultVoice: String
     
+    /// Flag to enable local execution via Process
+    public let useLocalExecution: Bool
+    
     public init(
         serverURL: URL = MLXConfiguration.defaultServerURL,
         ttsModel: String = MLXConfiguration.defaultTTSModel,
-        defaultVoice: String = MLXConfiguration.defaultVoice
+        defaultVoice: String = MLXConfiguration.defaultVoice,
+        useLocalExecution: Bool = false
     ) {
         self.serverURL = serverURL
         self.ttsModel = ttsModel
         self.defaultVoice = defaultVoice
+        self.useLocalExecution = useLocalExecution
     }
 }
