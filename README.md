@@ -59,6 +59,13 @@ gabgab-cli stt recording.wav
 gabgab-cli health
 ```
 
+## The Stack
+
+- 🔗 **Hugging Face**: [View Collection](https://lnkd.in/ggDSGpmB)
+- 🎵 **Soprano 1.1 80M**: [View Model](https://huggingface.co/ekwek/Soprano-1.1-80M)
+- 🏭 **Train Your Own (Factory)**: [Start Training](https://lnkd.in/gDWnna3J)
+- 🎧 **Listen to the Demo**: [Play Demo](https://lnkd.in/guJUXWus)
+
 ### MCP Server Usage
 
 ```bash

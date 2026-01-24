@@ -9,6 +9,9 @@ public struct MLXConfiguration: Sendable {
     /// Default TTS model
     public static let defaultTTSModel = "mlx-community/Kokoro-82M-bf16"
     
+    /// Soprano TTS model
+    public static let sopranoModel = "mlx-community/Soprano-1.1-80M-bf16"
+    
     /// Default voice identifier
     public static let defaultVoice = "af_heart"
     

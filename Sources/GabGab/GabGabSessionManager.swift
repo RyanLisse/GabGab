@@ -193,7 +193,7 @@ public final class GabGabSessionManager {
         // mlx_audio.tts.generate uses --file_prefix, NOT --output
         let filePrefix = tempURL.deletingPathExtension().path
         // Using explicit model. Switched to bf16 to avoid 'bit' parsing error
-        let command = "python3 -m mlx_audio.tts.generate --model mlx-community/Kokoro-82M-bf16 --text \"\(text)\" --voice \(voice) --file_prefix \"\(filePrefix)\""
+        let command = "python3 -m mlx_audio.tts.generate --model \(config.ttsModel) --text \"\(text)\" --voice \(voice) --file_prefix \"\(filePrefix)\""
         
         // Ignore unused warning by assigning to _
         // mlx_audio appends _000 to the filename

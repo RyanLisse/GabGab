@@ -41,6 +41,9 @@ extension GabGabCLI {
 
         @Option(name: .shortAndLong, help: "Output file path (default: speech.wav)")
         var output: String = "speech.wav"
+        
+        @Option(name: .shortAndLong, help: "Model to use (default: mlx-community/Kokoro-82M-bf16)")
+        var model: String = MLXConfiguration.defaultTTSModel
 
         @Option(name: .shortAndLong, help: "MLX server URL (default: http://127.0.0.1:8080)")
         var server: String = "http://127.0.0.1:8080"
@@ -63,16 +66,33 @@ extension GabGabCLI {
             print("📁 Output: \(output)")
             print("🚦 Urgency: \(urgency)")
 
+            // Create configuration with overrides
+            let ttsModel = model
+            
             // Create voice session manager
             let manager: GabGabSessionManager
+            
             if local {
-                manager = GabGabSessionManager.createLocal()
+                // For local mode, we construct config manually to include the model override
+                let config = MLXConfiguration(
+                    serverURL: URL(string: "http://localhost")!, // Dummy URL for local
+                    ttsModel: ttsModel,
+                    useLocalExecution: true
+                )
+                manager = GabGabSessionManager.create(config: config)
                 print("🖥️ Mode: Local Process")
             } else {
                 guard let serverURL = URL(string: server) else {
                     throw ValidationError(message: "Invalid server URL: \(server)")
                 }
-                manager = GabGabSessionManager.create(serverURL: serverURL)
+                // For server mode, we update the config to pass the requested model
+                // Note: The server might ignore this if it has a fixed model loaded,
+                // but we pass it in the synthesis request anyway.
+                let config = MLXConfiguration(
+                    serverURL: serverURL,
+                    ttsModel: ttsModel
+                )
+                manager = GabGabSessionManager.create(config: config)
                 print("🌐 Server: \(server)")
             }
 
@@ -201,6 +221,10 @@ extension GabGabCLI {
             print("   • af_bella - Female voice (clear, professional)")
             print("   • am_adam - Male voice (deep, authoritative)")
             print("   • am_michael - Male voice (neutral, clear)")
+            print("")
+            print("🎵 Supported Model IDs:")
+            print("   • \(MLXConfiguration.defaultTTSModel) (default)")
+            print("   • \(MLXConfiguration.sopranoModel) (Soprano 1.1)")
             print("")
             print("🎧 STT Models (Parakeet/Smart Turn):")
             print("   • parakeet-tdt-0.6b - Fast transcription")
